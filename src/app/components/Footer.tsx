@@ -1,8 +1,9 @@
 import { TrendingUp } from "lucide-react";
 import { mockPages } from "../data/pages";
+import { NavigateFn } from "../types";
 
 interface FooterProps {
-  onNavigate?: (view: "home" | "about" | "contact" | "admin-login" | string) => void;
+  onNavigate?: NavigateFn;
   onPageView?: (pageSlug: string) => void;
 }
 

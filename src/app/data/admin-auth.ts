@@ -26,6 +26,7 @@ export interface UserManagement {
   email: string;
   joinDate: string;
   status: "active" | "suspended" | "pending";
+  verified?: boolean;
   subscription?: {
     planName: string;
     status: string;
@@ -46,6 +47,45 @@ export interface SubscriptionRequest {
   mt4Username: string;
   mt4Server: string;
   accountType: string;
+  status: "pending" | "approved" | "rejected";
+  submittedAt: string;
+  reviewedAt?: string;
+  reviewedBy?: string;
+}
+
+export interface CancellationRequest {
+  id: string;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  planId: number;
+  planName: string;
+  amount: number;
+  status: "pending" | "approved" | "rejected";
+  requestedAt: string;
+  reviewedAt?: string;
+  reviewedBy?: string;
+}
+
+export interface VerificationRequest {
+  id: string;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  fullName?: string;
+  phone?: string;
+  email?: string;
+  dob?: string;
+  nationality?: string;
+  occupation?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  postcode?: string;
+  country?: string;
+  idType?: string;
+  idNumber?: string;
+  sourceOfFunds?: string;
   status: "pending" | "approved" | "rejected";
   submittedAt: string;
   reviewedAt?: string;
@@ -177,6 +217,64 @@ export const mockSubscriptionRequests: SubscriptionRequest[] = [
     reviewedBy: "admin",
   },
 ];
+
+export interface PaymentRequest {
+  id: string;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  planId: number;
+  planName: string;
+  amount: number;
+  paymentMethod: "crypto" | "mpay";
+  cryptoWallet?: string;
+  mpayId?: string;
+  status: "pending" | "approved" | "rejected";
+  submittedAt: string;
+  reviewedAt?: string;
+  reviewedBy?: string;
+}
+
+export const mockCancellationRequests: CancellationRequest[] = [];
+
+export const mockVerificationRequests: VerificationRequest[] = [];
+
+export const mockPaymentRequests: PaymentRequest[] = [];
+
+export interface WithdrawalRequest {
+  id: string;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  amount: number;
+  paymentMethod: "crypto" | "mpay";
+  cryptoWallet?: string;
+  mpayId?: string;
+  status: "pending" | "approved" | "rejected";
+  submittedAt: string;
+  reviewedAt?: string;
+  reviewedBy?: string;
+}
+
+export const mockWithdrawalRequests: WithdrawalRequest[] = [];
+
+export interface DepositRequest {
+  id: string;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  amount: number;
+  paymentMethod: "crypto" | "mpay";
+  cryptoWallet?: string;
+  mpayId?: string;
+  transactionId?: string;
+  status: "pending" | "approved" | "rejected";
+  submittedAt: string;
+  reviewedAt?: string;
+  reviewedBy?: string;
+}
+
+export const mockDepositRequests: DepositRequest[] = [];
 
 export const mockTransactions: Transaction[] = [
   {

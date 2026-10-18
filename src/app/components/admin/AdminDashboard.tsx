@@ -13,16 +13,22 @@ import {
   Clock,
   DollarSign,
   UserCheck,
-  AlertCircle
+  AlertCircle,
+  XCircle
 } from "lucide-react";
-import { AdminUser, getDashboardStats } from "../../data/admin-auth";
+import { AdminUser, getDashboardStats, mockCancellationRequests, mockDepositRequests, mockVerificationRequests, mockPaymentRequests, mockWithdrawalRequests } from "../../data/admin-auth";
 import { Button } from "../ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { UsersManagement } from "./UsersManagement";
 import { PlansManagement } from "./PlansManagement";
 import { SubscriptionApprovals } from "./SubscriptionApprovals";
+import { CancellationApprovals } from "./CancellationApprovals";
+import { VerificationApprovals } from "./VerificationApprovals";
 import { TransactionsManagement } from "./TransactionsManagement";
 import { PagesManagement } from "./PagesManagement";
+import { PaymentApprovals } from "./PaymentApprovals";
+import { WithdrawalApprovals } from "./WithdrawalApprovals";
+import { DepositApprovals } from "./DepositApprovals";
 import { Badge } from "../ui/badge";
 
 interface AdminDashboardProps {
@@ -30,18 +36,28 @@ interface AdminDashboardProps {
   onLogout: () => void;
 }
 
-type AdminView = "overview" | "users" | "plans" | "subscriptions" | "transactions" | "pages" | "settings";
+type AdminView = "overview" | "users" | "plans" | "subscriptions" | "verifications" | "cancellations" | "payments" | "withdrawals" | "deposits" | "transactions" | "pages" | "settings";
 
 export function AdminDashboard({ admin, onLogout }: AdminDashboardProps) {
   const [currentView, setCurrentView] = useState<AdminView>("overview");
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const stats = getDashboardStats();
+  const cancellationPending = mockCancellationRequests.filter(r => r.status === "pending").length;
+  const verificationPending = mockVerificationRequests.filter(r => r.status === "pending").length;
+  const paymentPending = mockPaymentRequests.filter(r => r.status === "pending").length;
+  const withdrawalPending = mockWithdrawalRequests.filter(r => r.status === "pending").length;
+  const depositPending = mockDepositRequests.filter(r => r.status === "pending").length;
 
   const navigation = [
     { id: "overview", name: "Overview", icon: LayoutDashboard },
     { id: "users", name: "Users", icon: Users },
     { id: "plans", name: "Plans", icon: Package },
     { id: "subscriptions", name: "Subscriptions", icon: CheckCircle, badge: stats.pendingApprovals },
+    { id: "verifications", name: "Verifications", icon: UserCheck, badge: verificationPending },
+    { id: "cancellations", name: "Cancellations", icon: XCircle, badge: cancellationPending },
+    { id: "payments", name: "Payments", icon: DollarSign, badge: paymentPending },
+    { id: "withdrawals", name: "Withdrawals", icon: DollarSign, badge: withdrawalPending },
+    { id: "deposits", name: "Deposits", icon: DollarSign, badge: depositPending },
     { id: "transactions", name: "Transactions", icon: FileText },
     { id: "pages", name: "Pages", icon: FileText },
     { id: "settings", name: "Settings", icon: Settings },
@@ -290,6 +306,11 @@ export function AdminDashboard({ admin, onLogout }: AdminDashboardProps) {
           {currentView === "users" && <UsersManagement />}
           {currentView === "plans" && <PlansManagement />}
           {currentView === "subscriptions" && <SubscriptionApprovals />}
+          {currentView === "verifications" && <VerificationApprovals />}
+          {currentView === "cancellations" && <CancellationApprovals />}
+          {currentView === "payments" && <PaymentApprovals />}
+          {currentView === "withdrawals" && <WithdrawalApprovals />}
+          {currentView === "deposits" && <DepositApprovals />}
           {currentView === "transactions" && <TransactionsManagement />}
           {currentView === "pages" && <PagesManagement />}
           {currentView === "settings" && (

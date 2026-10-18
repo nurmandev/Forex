@@ -20,10 +20,10 @@ export function CustomPageView({ page, onBack }: CustomPageViewProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
+    <div className="min-h-screen bg-gray-50 pt-20">
+      {/* Content */}
+      <main className="container mx-auto px-4 py-12">
+        <div className="mb-6">
           <Button
             variant="ghost"
             onClick={onBack}
@@ -33,10 +33,6 @@ export function CustomPageView({ page, onBack }: CustomPageViewProps) {
             Back to Home
           </Button>
         </div>
-      </header>
-
-      {/* Content */}
-      <main className="container mx-auto px-4 py-12">
         <article className="max-w-4xl mx-auto bg-white rounded-lg shadow-sm p-8 md:p-12">
           <div 
             className="prose prose-lg max-w-none

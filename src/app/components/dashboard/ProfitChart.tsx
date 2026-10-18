@@ -1,4 +1,5 @@
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from "recharts";
+import { useId } from "react";
+import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from "recharts";
 
 const profitData = [
   { date: "Nov 1", profit: 8.5 },
@@ -16,12 +17,15 @@ const profitData = [
 ];
 
 export function ProfitChart() {
+  const uid = useId().replace(/:/g, "");
+  const gradientId = `profit-gradient-${uid}`;
+
   return (
     <div className="w-full h-80">
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={profitData}>
           <defs>
-            <linearGradient id="colorProfit" x1="0" y1="0" x2="0" y2="1">
+            <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
               <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
             </linearGradient>
@@ -51,7 +55,7 @@ export function ProfitChart() {
             dataKey="profit"
             stroke="#10b981"
             strokeWidth={2}
-            fill="url(#colorProfit)"
+            fill={`url(#${gradientId})`}
           />
         </AreaChart>
       </ResponsiveContainer>

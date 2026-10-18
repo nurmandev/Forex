@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Header } from "./components/Header";
 import { Hero } from "./components/Hero";
 import { Features } from "./components/Features";
+import { HowItWorks } from "./components/HowItWorks";
 import { InvestmentPlans } from "./components/InvestmentPlans";
 import { Testimonials } from "./components/Testimonials";
 import { Footer } from "./components/Footer";
@@ -9,18 +10,18 @@ import { SubscriptionModal } from "./components/SubscriptionModal";
 import { Login } from "./components/auth/Login";
 import { Register } from "./components/auth/Register";
 import { Dashboard } from "./components/dashboard/Dashboard";
+import { VerificationForm } from "./components/VerificationForm";
 import { ContactUs } from "./components/ContactUs";
 import { AboutUs } from "./components/AboutUs";
 import { AdminLogin } from "./components/admin/AdminLogin";
 import { AdminDashboard } from "./components/admin/AdminDashboard";
 import { CustomPageView } from "./components/CustomPageView";
-import { InvestmentPlan, UserData } from "./types";
+import { InvestmentPlan, UserData, View } from "./types";
 import { AuthUser } from "./data/auth";
 import { AdminUser } from "./data/admin-auth";
 import { mockPages } from "./data/pages";
+import { mockVerificationRequests } from "./data/admin-auth";
 import { toast } from "sonner";
-
-type View = "home" | "login" | "register" | "dashboard" | "contact" | "about" | "admin-login" | "admin-dashboard" | "custom-page";
 
 export default function App() {
   const [currentView, setCurrentView] = useState<View>("home");
@@ -29,9 +30,9 @@ export default function App() {
   const [selectedPlan, setSelectedPlan] = useState<InvestmentPlan | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentPageSlug, setCurrentPageSlug] = useState<string | null>(null);
+  const [isNewUser, setIsNewUser] = useState(false);
 
   const handleGetStarted = () => {
-    // Check if user is logged in
     if (currentUser) {
       const plansSection = document.getElementById("plans");
       if (plansSection) {
@@ -54,30 +55,35 @@ export default function App() {
 
   const handleConfirmSubscription = (userData: UserData) => {
     console.log("Subscription confirmed:", userData);
-    
     toast.success(
-      `Subscription submitted successfully! Your MT4/MT5 credentials are being reviewed by our admin team. You'll receive an email notification once approved (typically within 1-2 business hours).`,
-      {
-        duration: 7000,
-      }
+      "Subscription submitted successfully! Your MT4/MT5 credentials are being reviewed by our admin team. You'll receive an email notification once approved (typically within 1-2 business hours).",
+      { duration: 7000 }
     );
-    
     setIsModalOpen(false);
     setSelectedPlan(null);
-    
-    // Switch to dashboard after subscription
-    if (currentUser) {
-      setCurrentView("dashboard");
-    }
+    if (currentUser) setCurrentView("dashboard");
   };
 
   const handleLogin = (user: AuthUser) => {
+    setIsNewUser(false);
     setCurrentUser(user);
+    setCurrentView("dashboard");
+  };
+
+  const handleRegisterSuccess = (email: string, name: string) => {
+    const newUser: AuthUser = {
+      email,
+      name,
+      wallet: { balance: 0, withdrawable: 0 },
+    };
+    setCurrentUser(newUser);
+    setIsNewUser(true);
     setCurrentView("dashboard");
   };
 
   const handleLogout = () => {
     setCurrentUser(null);
+    setIsNewUser(false);
     setCurrentView("home");
     toast.success("Logged out successfully");
   };
@@ -98,7 +104,42 @@ export default function App() {
     setCurrentView("custom-page");
   };
 
-  // Render based on current view
+  const handleVerificationSubmit = (formData: any) => {
+    if (!currentUser) return;
+    const existing = mockVerificationRequests.find(r => r.userEmail === currentUser.email && r.status === "pending");
+    if (existing) return;
+    mockVerificationRequests.push({
+      id: `vr-${Date.now()}`,
+      userId: currentUser.email,
+      userName: currentUser.name,
+      userEmail: currentUser.email,
+      fullName: `${formData.firstName || ""} ${formData.lastName || ""}`.trim(),
+      email: formData.email,
+      phone: formData.phone,
+      dob: formData.dob,
+      nationality: formData.nationality,
+      occupation: formData.occupation,
+      address: formData.address,
+      city: formData.city,
+      state: formData.state,
+      postcode: formData.postcode,
+      country: formData.country,
+      idType: formData.idType,
+      idNumber: formData.idNumber,
+      sourceOfFunds: formData.sourceOfFunds,
+      status: "pending",
+      submittedAt: new Date().toISOString(),
+    });
+  };
+
+  const handleVerificationComplete = () => {
+    setIsNewUser(false);
+    setCurrentView("dashboard");
+    toast.success("Verification submitted! Our team will review your details shortly.");
+  };
+
+  // ── Views ──
+
   if (currentView === "login") {
     return (
       <Login
@@ -112,6 +153,18 @@ export default function App() {
     return (
       <Register
         onSwitchToLogin={() => setCurrentView("login")}
+        onRegisterSuccess={handleRegisterSuccess}
+      />
+    );
+  }
+
+  if (currentView === "verification") {
+    return (
+      <VerificationForm
+        user={currentUser}
+        onComplete={handleVerificationComplete}
+        onBack={() => setCurrentView("dashboard")}
+        onSubmit={handleVerificationSubmit}
       />
     );
   }
@@ -122,6 +175,8 @@ export default function App() {
         user={currentUser}
         onLogout={handleLogout}
         onGoHome={() => setCurrentView("home")}
+        isNewUser={isNewUser}
+        onVerify={() => setCurrentView("verification")}
       />
     );
   }
@@ -129,17 +184,16 @@ export default function App() {
   if (currentView === "contact") {
     return (
       <div className="min-h-screen bg-white">
-        <Header onNavigate={setCurrentView} onPageView={handlePageView} />
+        <Header currentUser={currentUser} onNavigate={setCurrentView} onPageView={handlePageView} />
         <ContactUs />
-        <Footer onNavigate={setCurrentView} onPageView={handlePageView} />
-      </div>
+        <Footer onNavigate={setCurrentView} onPageView={handlePageView} />      </div>
     );
   }
 
   if (currentView === "about") {
     return (
       <div className="min-h-screen bg-white">
-        <Header onNavigate={setCurrentView} onPageView={handlePageView} />
+        <Header currentUser={currentUser} onNavigate={setCurrentView} onPageView={handlePageView} />
         <AboutUs onNavigate={setCurrentView} />
         <Footer onNavigate={setCurrentView} onPageView={handlePageView} />
       </div>
@@ -147,11 +201,7 @@ export default function App() {
   }
 
   if (currentView === "admin-login") {
-    return (
-      <AdminLogin
-        onLogin={handleAdminLogin}
-      />
-    );
+    return <AdminLogin onLogin={handleAdminLogin} />;
   }
 
   if (currentView === "admin-dashboard" && currentAdmin) {
@@ -167,26 +217,30 @@ export default function App() {
     const page = mockPages.find(p => p.slug === currentPageSlug);
     if (page) {
       return (
-        <CustomPageView
-          page={page}
-          onBack={() => setCurrentView("home")}
-        />
+        <div className="min-h-screen bg-white">
+          <Header currentUser={currentUser} onNavigate={setCurrentView} onPageView={handlePageView} />
+          <CustomPageView
+            page={page}
+            onBack={() => setCurrentView("home")}
+          />
+          <Footer onNavigate={setCurrentView} onPageView={handlePageView} />
+        </div>
       );
     }
   }
 
-  // Default home view
   return (
     <div className="min-h-screen bg-white">
-      <Header onNavigate={setCurrentView} onPageView={handlePageView} />
+      <Header currentUser={currentUser} onNavigate={setCurrentView} onPageView={handlePageView} />
       <main>
         <Hero onGetStarted={handleGetStarted} />
         <Features />
+        <HowItWorks />
         <InvestmentPlans onSelectPlan={handleSelectPlan} />
         <Testimonials />
       </main>
       <Footer onNavigate={setCurrentView} onPageView={handlePageView} />
-      
+
       <SubscriptionModal
         plan={selectedPlan}
         isOpen={isModalOpen}
@@ -197,7 +251,6 @@ export default function App() {
         onConfirm={handleConfirmSubscription}
       />
 
-      {/* Login/Dashboard Button */}
       {currentUser ? (
         <button
           onClick={() => setCurrentView("dashboard")}

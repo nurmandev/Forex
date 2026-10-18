@@ -1,43 +1,45 @@
-import { ArrowUpCircle, Check } from "lucide-react";
+import { useState } from "react";
+import { ArrowRight, Check } from "lucide-react";
 import { Button } from "../ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../ui/dialog";
 import { Card, CardContent, CardFooter, CardHeader } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { investmentPlans } from "../../data/plans";
-import { toast } from "sonner";
+import { InvestmentPlan } from "../../types";
 
 interface UpgradeModalProps {
   isOpen: boolean;
   onClose: () => void;
-  currentPlanId: number;
+  activePlanIds: number[];
+  onAddPlan: (planId: number) => void;
 }
 
-export function UpgradeModal({ isOpen, onClose, currentPlanId }: UpgradeModalProps) {
-  const availablePlans = investmentPlans.filter(plan => plan.id > currentPlanId);
+export function UpgradeModal({ isOpen, onClose, activePlanIds, onAddPlan }: UpgradeModalProps) {
+  const availablePlans = investmentPlans.filter(plan => !activePlanIds.includes(plan.id));
+  const isSubscribedToAll = availablePlans.length === 0;
 
-  const handleUpgrade = (planName: string) => {
-    toast.success(`Plan upgrade to ${planName} initiated! Our team will contact you within 24 hours to complete the upgrade.`);
-    onClose();
+  const handleAddPlan = (plan: InvestmentPlan) => {
+    onAddPlan(plan.id);
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Upgrade Your Plan</DialogTitle>
+          <DialogTitle>Add Investment Plan</DialogTitle>
           <DialogDescription>
-            Increase your profit potential with a higher-tier investment plan
+            Add more investment plans to diversify your portfolio and increase profit potential
           </DialogDescription>
         </DialogHeader>
 
-        {availablePlans.length === 0 ? (
+        {isSubscribedToAll ? (
           <div className="text-center py-8">
             <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Check className="w-8 h-8 text-blue-600" />
             </div>
-            <h3 className="text-gray-900 mb-2">You're on the Best Plan!</h3>
+            <h3 className="text-gray-900 mb-2">You're on All Plans!</h3>
             <p className="text-gray-600">
-              You're already subscribed to our premium plan with the highest profit potential.
+              You're already subscribed to every available investment plan.
             </p>
           </div>
         ) : (
@@ -54,10 +56,14 @@ export function UpgradeModal({ isOpen, onClose, currentPlanId }: UpgradeModalPro
 
                 <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100 pb-4">
                   <h3 className="text-gray-900 mb-2">{plan.name}</h3>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-4xl text-gray-900">${plan.amount}</span>
-                    <span className="text-gray-500">investment</span>
+                  <div className="flex items-baseline gap-2 flex-wrap">
+                    <span className="text-3xl font-bold text-gray-900">
+                      {plan.maxAmount >= 999999
+                        ? `$${plan.amount.toLocaleString()}+`
+                        : `$${plan.amount.toLocaleString()} – $${plan.maxAmount.toLocaleString()}`}
+                    </span>
                   </div>
+                  <p className="text-sm text-gray-500 mt-1">Investment Range</p>
                 </CardHeader>
 
                 <CardContent className="pt-6">
@@ -86,11 +92,11 @@ export function UpgradeModal({ isOpen, onClose, currentPlanId }: UpgradeModalPro
 
                 <CardFooter>
                   <Button
-                    onClick={() => handleUpgrade(plan.name)}
+                    onClick={() => handleAddPlan(plan)}
                     className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
                   >
-                    <ArrowUpCircle className="w-4 h-4 mr-2" />
-                    Upgrade to {plan.name}
+                    <ArrowRight className="w-4 h-4 mr-2" />
+                    Add {plan.name}
                   </Button>
                 </CardFooter>
               </Card>
@@ -99,12 +105,12 @@ export function UpgradeModal({ isOpen, onClose, currentPlanId }: UpgradeModalPro
         )}
 
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
-          <p className="text-sm text-blue-900 mb-2">Upgrade Benefits:</p>
+          <p className="text-sm text-blue-900 mb-2">Benefits of Multiple Plans:</p>
           <ul className="text-sm text-blue-800 space-y-1 ml-4">
-            <li>• Higher daily profit percentages</li>
-            <li>• Enhanced features and analytics</li>
-            <li>• Priority customer support</li>
-            <li>• Your current profits are preserved</li>
+            <li>• Diversify across different investment tiers</li>
+            <li>• Combine profit rates from multiple plans</li>
+            <li>• Higher total withdrawal potential</li>
+            <li>• Each plan managed independently</li>
           </ul>
         </div>
       </DialogContent>

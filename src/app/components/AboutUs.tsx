@@ -1,9 +1,10 @@
 import { TrendingUp, Target, Award, Users, Shield, Zap, Globe, BarChart3, CheckCircle2, LineChart } from "lucide-react";
 import { Card } from "./ui/card";
 import { Badge } from "./ui/badge";
+import { NavigateFn } from "../types";
 
 interface AboutUsProps {
-  onNavigate?: (view: "home" | "contact") => void;
+  onNavigate?: NavigateFn;
 }
 
 export function AboutUs({ onNavigate }: AboutUsProps = {}) {

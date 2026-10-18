@@ -15,9 +15,12 @@ export function PlansManagement() {
   const [plans, setPlans] = useState<InvestmentPlan[]>(investmentPlans);
   const [editingPlan, setEditingPlan] = useState<InvestmentPlan | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
+    label: "",
     amount: 0,
+    maxAmount: 0,
     dailyProfit: "",
     minDuration: 0,
     withdrawalLimit: 0,
@@ -28,7 +31,9 @@ export function PlansManagement() {
     setEditingPlan(plan);
     setFormData({
       name: plan.name,
+      label: plan.label,
       amount: plan.amount,
+      maxAmount: plan.maxAmount,
       dailyProfit: plan.dailyProfit,
       minDuration: plan.minDuration,
       withdrawalLimit: plan.withdrawalLimit,
@@ -37,9 +42,24 @@ export function PlansManagement() {
     setShowEditModal(true);
   };
 
+  const handleAddNew = () => {
+    setEditingPlan(null);
+    setFormData({
+      name: "",
+      label: "",
+      amount: 0,
+      maxAmount: 0,
+      dailyProfit: "",
+      minDuration: 0,
+      withdrawalLimit: 0,
+      features: [],
+    });
+    setShowAddModal(true);
+  };
+
   const handleSave = () => {
     if (editingPlan) {
-      setPlans(plans.map(p => 
+      setPlans(plans.map(p =>
         p.id === editingPlan.id ? { ...p, ...formData } : p
       ));
       toast.success("Plan updated successfully!");
@@ -48,8 +68,33 @@ export function PlansManagement() {
     setEditingPlan(null);
   };
 
+  const handleCreate = () => {
+    if (!formData.name || !formData.label || formData.amount <= 0) {
+      toast.error("Please fill in all required fields (name, label, amount).");
+      return;
+    }
+
+    const newId = Math.max(...plans.map(p => p.id), 0) + 1;
+
+    const newPlan: InvestmentPlan = {
+      id: newId,
+      name: formData.name,
+      label: formData.label,
+      amount: formData.amount,
+      maxAmount: formData.maxAmount || formData.amount * 2,
+      dailyProfit: formData.dailyProfit,
+      minDuration: formData.minDuration || 30,
+      withdrawalLimit: formData.withdrawalLimit || 50,
+      features: formData.features.filter(f => f.trim()),
+    };
+
+    setPlans([...plans, newPlan]);
+    toast.success(`Plan "${formData.name}" created successfully!`);
+    setShowAddModal(false);
+  };
+
   const handleToggleActive = (planId: number) => {
-    setPlans(plans.map(p => 
+    setPlans(plans.map(p =>
       p.id === planId ? { ...p, active: !p.active } : p
     ));
     const plan = plans.find(p => p.id === planId);
@@ -105,7 +150,7 @@ export function PlansManagement() {
               <CardTitle>Investment Plans</CardTitle>
               <CardDescription>Manage subscription plans and pricing</CardDescription>
             </div>
-            <Button className="bg-blue-600 hover:bg-blue-700">
+            <Button className="bg-blue-600 hover:bg-blue-700" onClick={handleAddNew}>
               <Plus className="w-4 h-4 mr-2" />
               Add New Plan
             </Button>
@@ -180,12 +225,27 @@ export function PlansManagement() {
         </CardContent>
       </Card>
 
-      {/* Edit Modal */}
-      <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
+      {/* Add/Edit Modal */}
+      <Dialog open={showEditModal || showAddModal} onOpenChange={(open) => {
+        if (!open) {
+          setShowEditModal(false);
+          setShowAddModal(false);
+          setEditingPlan(null);
+        }
+      }}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Edit Plan: {editingPlan?.name}</DialogTitle>
-            <DialogDescription>Update plan details and pricing</DialogDescription>
+            {editingPlan ? (
+              <>
+                <DialogTitle>Edit Plan: {editingPlan.name}</DialogTitle>
+                <DialogDescription>Update plan details and pricing</DialogDescription>
+              </>
+            ) : (
+              <>
+                <DialogTitle>Add New Plan</DialogTitle>
+                <DialogDescription>Create a new investment plan</DialogDescription>
+              </>
+            )}
           </DialogHeader>
 
           <div className="space-y-4">
@@ -199,12 +259,34 @@ export function PlansManagement() {
                 />
               </div>
               <div>
+                <Label htmlFor="label">Plan Label (e.g., A, B, C)</Label>
+                <Input
+                  id="label"
+                  value={formData.label}
+                  onChange={(e) => setFormData({ ...formData, label: e.target.value })}
+                  placeholder="e.g., G"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
                 <Label htmlFor="amount">Investment Amount ($)</Label>
                 <Input
                   id="amount"
                   type="number"
                   value={formData.amount}
                   onChange={(e) => setFormData({ ...formData, amount: Number(e.target.value) })}
+                />
+              </div>
+              <div>
+                <Label htmlFor="maxAmount">Max Investment Amount ($)</Label>
+                <Input
+                  id="maxAmount"
+                  type="number"
+                  value={formData.maxAmount}
+                  onChange={(e) => setFormData({ ...formData, maxAmount: Number(e.target.value) })}
+                  placeholder="e.g., 5000"
                 />
               </div>
             </div>
@@ -251,11 +333,18 @@ export function PlansManagement() {
             </div>
 
             <div className="flex justify-end gap-3 pt-4">
-              <Button variant="outline" onClick={() => setShowEditModal(false)}>
+              <Button variant="outline" onClick={() => {
+                setShowEditModal(false);
+                setShowAddModal(false);
+                setEditingPlan(null);
+              }}>
                 Cancel
               </Button>
-              <Button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700">
-                Save Changes
+              <Button
+                onClick={editingPlan ? handleSave : handleCreate}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                {editingPlan ? 'Save Changes' : 'Create Plan'}
               </Button>
             </div>
           </div>

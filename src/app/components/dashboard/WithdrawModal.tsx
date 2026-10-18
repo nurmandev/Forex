@@ -1,10 +1,11 @@
-import { useState } from "react";
-import { DollarSign, CreditCard, Building2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { DollarSign, Bitcoin, Phone } from "lucide-react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { mockWithdrawalRequests } from "../../data/admin-auth";
 import { toast } from "sonner";
 
 interface WithdrawModalProps {
@@ -12,12 +13,27 @@ interface WithdrawModalProps {
   onClose: () => void;
   availableBalance: number;
   minimumWithdrawal: number;
+  user: { email: string; name: string };
+  onWithdrawalComplete: (amount: number, method: string, details: { cryptoWallet?: string; mpayId?: string }) => void;
 }
 
-export function WithdrawModal({ isOpen, onClose, availableBalance, minimumWithdrawal }: WithdrawModalProps) {
+export function WithdrawModal({ isOpen, onClose, availableBalance, minimumWithdrawal, user, onWithdrawalComplete }: WithdrawModalProps) {
   const [amount, setAmount] = useState("");
-  const [method, setMethod] = useState("bank");
+  const [method, setMethod] = useState("crypto");
+  const [cryptoWallet, setCryptoWallet] = useState("");
+  const [mpayId, setMpayId] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+
+  // Reset form when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setAmount("");
+      setMethod("crypto");
+      setCryptoWallet("");
+      setMpayId("");
+      setIsProcessing(false);
+    }
+  }, [isOpen]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,13 +50,33 @@ export function WithdrawModal({ isOpen, onClose, availableBalance, minimumWithdr
       return;
     }
 
+    const details: { cryptoWallet?: string; mpayId?: string } = {};
+    if (method === "crypto") details.cryptoWallet = cryptoWallet.trim();
+    if (method === "mpay") details.mpayId = mpayId.trim();
+
+    // Record withdrawal request so admin can see it
+    mockWithdrawalRequests.push({
+      id: `wd-${Date.now()}`,
+      userId: user.email,
+      userName: user.name,
+      userEmail: user.email,
+      amount: withdrawAmount,
+      paymentMethod: method as "crypto" | "mpay",
+      ...details,
+      status: "pending",
+      submittedAt: new Date().toISOString(),
+    });
+
+    // Notify parent to add to user's transactions and redirect
+    onWithdrawalComplete(withdrawAmount, method, details);
+
     setIsProcessing(true);
-    
-    // Simulate API call
     setTimeout(() => {
-      toast.success(`Withdrawal of $${withdrawAmount.toFixed(2)} initiated! Funds will be processed within 24-48 hours.`);
       setIsProcessing(false);
       setAmount("");
+      setCryptoWallet("");
+      setMpayId("");
+      toast.success(`Withdrawal request of $${withdrawAmount.toFixed(2)} submitted! Pending admin approval.`);
       onClose();
     }, 1500);
   };
@@ -97,68 +133,50 @@ export function WithdrawModal({ isOpen, onClose, availableBalance, minimumWithdr
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="bank">
+                <SelectItem value="crypto">
                   <div className="flex items-center gap-2">
-                    <Building2 className="w-4 h-4" />
-                    <span>Bank Transfer</span>
+                    <Bitcoin className="w-4 h-4" />
+                    <span>Crypto (USDT TRC20)</span>
                   </div>
                 </SelectItem>
-                <SelectItem value="card">
+                <SelectItem value="mpay">
                   <div className="flex items-center gap-2">
-                    <CreditCard className="w-4 h-4" />
-                    <span>Debit Card</span>
+                    <Phone className="w-4 h-4" />
+                    <span>MPay ID</span>
                   </div>
                 </SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          {method === "bank" && (
+          {method === "crypto" && (
             <>
               <div className="space-y-2">
-                <Label htmlFor="accountName">Account Holder Name</Label>
+                <Label htmlFor="cryptoWallet">USDT (TRC20) Wallet Address</Label>
                 <Input
-                  id="accountName"
-                  placeholder="John Doe"
+                  id="cryptoWallet"
+                  placeholder="TXYZ1234567890..."
+                  value={cryptoWallet}
+                  onChange={(e) => setCryptoWallet(e.target.value)}
                   required
                 />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="accountNumber">Account Number</Label>
-                <Input
-                  id="accountNumber"
-                  placeholder="1234567890"
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="bankName">Bank Name</Label>
-                <Input
-                  id="bankName"
-                  placeholder="Your Bank"
-                  required
-                />
+                <p className="text-xs text-gray-500">Withdrawal will be sent to this USDT TRC20 wallet address.</p>
               </div>
             </>
           )}
 
-          {method === "card" && (
+          {method === "mpay" && (
             <>
               <div className="space-y-2">
-                <Label htmlFor="cardNumber">Card Number</Label>
+                <Label htmlFor="mpayId">MPay ID</Label>
                 <Input
-                  id="cardNumber"
-                  placeholder="1234 5678 9012 3456"
+                  id="mpayId"
+                  placeholder="Enter your MPay ID"
+                  value={mpayId}
+                  onChange={(e) => setMpayId(e.target.value)}
                   required
                 />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="cardName">Cardholder Name</Label>
-                <Input
-                  id="cardName"
-                  placeholder="John Doe"
-                  required
-                />
+                <p className="text-xs text-gray-500">Provide your MPay ID registered on our partner website.</p>
               </div>
             </>
           )}

@@ -70,7 +70,7 @@ export function Login({ onLogin, onSwitchToRegister }: LoginProps) {
                 Start your<br />forex trading<br />journey today
               </h1>
               <p className="text-xl text-blue-100 max-w-md">
-                Join thousands of successful traders earning consistent profits with our AI-powered automation platform.
+                Take control of your trading journey with our professionally managed forex trading plans and a transparent account management process.
               </p>
             </div>
 

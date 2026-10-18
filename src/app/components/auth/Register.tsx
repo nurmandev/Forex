@@ -9,9 +9,10 @@ import { toast } from "sonner";
 
 interface RegisterProps {
   onSwitchToLogin: () => void;
+  onRegisterSuccess: (email: string, name: string) => void;
 }
 
-export function Register({ onSwitchToLogin }: RegisterProps) {
+export function Register({ onSwitchToLogin, onRegisterSuccess }: RegisterProps) {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -46,8 +47,8 @@ export function Register({ onSwitchToLogin }: RegisterProps) {
       const success = registerUser(formData.email, formData.name, formData.password);
       
       if (success) {
-        toast.success("Account created successfully! Please sign in.");
-        onSwitchToLogin();
+        toast.success("Account created successfully! Welcome aboard.");
+        onRegisterSuccess(formData.email, formData.name);
       } else {
         toast.error("An account with this email already exists.");
       }

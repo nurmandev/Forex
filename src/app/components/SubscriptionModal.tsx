@@ -130,7 +130,7 @@ export function SubscriptionModal({ plan, isOpen, onClose, onConfirm }: Subscrip
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <h4 className="text-xl font-semibold text-gray-900 mb-1">{plan.name}</h4>
-                    <p className="text-gray-600">Initial Investment: <span className="font-semibold">${plan.amount}</span></p>
+                    <p className="text-gray-600">Investment Range: <span className="font-semibold">{plan.maxAmount >= 999999 ? `$${plan.amount.toLocaleString()}+` : `$${plan.amount.toLocaleString()} – $${plan.maxAmount.toLocaleString()}`}</span></p>
                   </div>
                   <div className="text-right">
                     <p className="text-blue-600 text-3xl font-bold">{plan.dailyProfit}</p>
@@ -444,8 +444,8 @@ export function SubscriptionModal({ plan, isOpen, onClose, onConfirm }: Subscrip
                       <span className="font-medium text-gray-900">{plan.name}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Investment Amount:</span>
-                      <span className="font-medium text-gray-900">${plan.amount}</span>
+                      <span className="text-gray-600">Investment Range:</span>
+                      <span className="font-medium text-gray-900">{plan.maxAmount >= 999999 ? `$${plan.amount.toLocaleString()}+` : `$${plan.amount.toLocaleString()} – $${plan.maxAmount.toLocaleString()}`}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Daily Profit:</span>

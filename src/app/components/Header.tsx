@@ -1,15 +1,18 @@
 import { useState } from "react";
-import { TrendingUp, Menu, X } from "lucide-react";
+import { TrendingUp, Menu, X, LogIn, LayoutDashboard } from "lucide-react";
 import { Button } from "./ui/button";
 import { mockPages } from "../data/pages";
+import { AuthUser } from "../data/auth";
+import { NavigateFn } from "../types";
 
 interface HeaderProps {
+  currentUser?: AuthUser | null;
   onLoginClick?: () => void;
-  onNavigate?: (view: "home" | "about" | "contact" | string) => void;
+  onNavigate?: NavigateFn;
   onPageView?: (pageSlug: string) => void;
 }
 
-export function Header({ onLoginClick, onNavigate, onPageView }: HeaderProps = {}) {
+export function Header({ currentUser, onLoginClick, onNavigate, onPageView }: HeaderProps = {}) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   
   // Get published pages that should show in header
@@ -79,9 +82,18 @@ export function Header({ onLoginClick, onNavigate, onPageView }: HeaderProps = {
 
           {/* CTA Button */}
           <div className="hidden md:flex items-center gap-4">
-            <Button onClick={() => scrollToSection("plans")} className="bg-blue-600 hover:bg-blue-700 text-white">
-              Get Started
-            </Button>
+            {currentUser ? (
+              <Button
+                onClick={() => onNavigate?.("dashboard")}
+                className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
+              >
+                <LayoutDashboard className="w-4 h-4" /> Dashboard
+              </Button>
+            ) : (
+              <Button onClick={() => scrollToSection("plans")} className="bg-blue-600 hover:bg-blue-700 text-white">
+                Get Started
+              </Button>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -119,9 +131,18 @@ export function Header({ onLoginClick, onNavigate, onPageView }: HeaderProps = {
                   {page.title}
                 </button>
               ))}
-              <Button onClick={() => scrollToSection("plans")} className="w-full bg-blue-600 hover:bg-blue-700 mt-2">
-                Get Started
-              </Button>
+              {currentUser ? (
+                <Button
+                  onClick={() => onNavigate?.("dashboard")}
+                  className="w-full bg-blue-600 hover:bg-blue-700 mt-2 flex items-center justify-center gap-2"
+                >
+                  <LayoutDashboard className="w-4 h-4" /> Dashboard
+                </Button>
+              ) : (
+                <Button onClick={() => scrollToSection("plans")} className="w-full bg-blue-600 hover:bg-blue-700 mt-2">
+                  Get Started
+                </Button>
+              )}
             </nav>
           </div>
         )}
